@@ -3,6 +3,13 @@
   "displayName": "VoiceItems",
   "description": "Maintain and edit lists with Cursorless extension  and apply filter and sort",
   "version": "0.0.1",
+  "publisher": "marcusvoicecoder",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mark-Phillipson/voiceitems"
+  },
   "engines": {
     "vscode": "^1.107.0"
   },
