@@ -59,14 +59,69 @@ VoiceItems provides quick-pick and editor-based navigation for lists in the curr
 - **Toggle complete**: `VoiceItems: Toggle Complete` — toggle the checkbox on a specified line
 - **Show Markdown headings**: `VoiceItems: Show Markdown Headings` — navigate by headings in a Markdown file (highlights headings in the active editor while QuickPick is open; line numbers are not shown)
 
+### Command diagram 🔧
+
+A visual overview of available commands and their drilldown/interaction paths.
+
+```mermaid
+flowchart LR
+  SIQ["Show Items (Quick Pick)"]
+  SK["Search by Keyword"]
+  CK["Clear Keyword Filter"]
+  SKM["Show Keyword Matches"]
+  SMH["Show Markdown Headings"]
+  SPI["Show Items by Priority"]
+  SII["Show Incomplete Items"]
+  SCI["Show Completed Items"]
+  STR["Show Time Range Filters"]
+  TC["Toggle Complete"]
+  IP["Increase Priority"]
+  DP["Decrease Priority"]
+  JTL["Jump to Line"]
+
+  SK --> SKM
+  SKM --> JTL
+  SK -->|sets filter then| SKM
+  SIQ -->|if keyword set| SKM
+  SIQ -->|select item| JTL
+  SMH -->|select heading| JTL
+  SPI -->|pick priorities → select item| JTL
+  SII -->|select item| JTL
+  SCI -->|select item| JTL
+  STR -->|select range / custom| JTL
+  TC -.->|modifies file| File[File]
+  IP -.->|modifies file| File
+  DP -.->|modifies file| File
+  CK -.->|clears filter| SK
+```
+
 
 ### Keyboard Shortcuts
 - `Ctrl+Alt+F` / `Cmd+Alt+F`: Search by keyword (run command)
 - You can bind the QuickPick or Toggle commands to your preferred keys via VS Code keyboard shortcuts.
 
 ### Voice tips
-- Use **Show Filtered Items** and speak the item number (e.g., "one" or "three") to jump to an item quickly.
-- Use **Open Filtered Document** to get a plain editor view containing only matched lines; run **Jump to Original (from Filtered Doc)** on a selected line to navigate back to the source.
+- Use **Show Items (Quick Pick)** and speak the item number (e.g., "one" or "three") to jump to an item quickly.
+
+#### Voice Commands (Talon examples) 🔊
+
+If you're using Talon or another voice-macro engine, you can map spoken phrases to extension commands. Here are some example Talon mappings you can drop into your Talon scripts:
+
+```talon
+voice items:
+    key(f1)
+    sleep(100ms)
+    insert("VoiceItems: ")
+decrease priority:
+    user.vscode("voiceitems.decreasePriority")
+increase priority:
+    user.vscode("voiceitems.increasePriority")
+toggle complete: user.vscode("voiceitems.toggleComplete")
+voice items pick: user.vscode("voiceitems.showItemsQuickPick")
+voice items search: user.vscode("voiceitems.searchKeyword")
+```
+
+These mappings call the extension's VS Code commands (for example, `voiceitems.toggleComplete`, `voiceitems.increasePriority`, etc.). Adjust the spoken phrases and timing to suit your own voice workflow.
 
 ### Configuration
 
@@ -96,31 +151,3 @@ Initial release:
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
-
-##Debugging
-
-To debug your extension, press `F5` to open a new Extension Development Host window. This will launch a new instance of VS Code with your extension loaded. You can set breakpoints and step through your code as needed.
-
-```
-code --extensionDevelopmentPath="c:\Users\MPhil\source\repos\MSP_VSCode_Extension\voiceitems\voiceitems" "c:\Users\MPhil\source\repos\MSP_VSCode_Extension\voiceitems\voiceitems\sample.tasks"
-```
