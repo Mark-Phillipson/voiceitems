@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ParserFactory } from '../parsers/parserFactory';
 import { FilterSortService } from '../treeView/filterSortService';
-import { registerQuickPickCommands, buildKeywordPicks } from '../commands/quickPickCommands';
+import { registerQuickPickCommands, buildKeywordPicks, buildHeadingPicks } from '../commands/quickPickCommands';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -48,6 +48,23 @@ suite('Extension Test Suite', () => {
 		const picks = buildKeywordPicks(doc, 'apple');
 		assert.strictEqual(picks.length, 2, 'Should find two matching lines');
 		assert.ok(picks[0].label.includes('»apple«') || picks[0].label.toLowerCase().includes('apple'), 'Label should highlight the keyword');
+
+		// cleanup
+		await vscode.workspace.fs.delete(uri);
+	});
+
+	test('buildHeadingPicks returns headings with indentation and line numbers', async () => {
+		const content = `# Top level\nSome intro text\n## Subheading\n### Sub-sub\nAnother line\n# Another top`;
+		const uri = await makeFile('test-headings.md', content);
+		const doc = await vscode.workspace.openTextDocument(uri);
+
+		const picks = buildHeadingPicks(doc);
+		// We expect 4 headings: # Top level, ## Subheading, ### Sub-sub, # Another top
+		assert.strictEqual(picks.length, 4, 'Should find 4 headings');
+		assert.strictEqual(picks[0].label, 'Top level', 'First heading text');
+		assert.strictEqual(picks[1].label, '  Subheading', 'Second heading should be indented');
+		assert.strictEqual(picks[2].label, '    Sub-sub', 'Third heading should be further indented');
+		assert.strictEqual(picks[3].detail, 'Line 6', 'Line number should be reported correctly');
 
 		// cleanup
 		await vscode.workspace.fs.delete(uri);

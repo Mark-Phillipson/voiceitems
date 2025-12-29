@@ -28,6 +28,27 @@ function escapeRegExp(s: string) {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Build quick pick items for Markdown headings (supports # .. ######)
+ * Returns label with indentation representing heading level, and line number
+ */
+export function buildHeadingPicks(document: vscode.TextDocument) {
+	const picks: Array<{ label: string; detail: string; lineNumber: number; level: number }> = [];
+	const headingRegex = /^\s{0,3}(#{1,6})\s+(.*)$/;
+	for (let i = 0; i < document.lineCount; i++) {
+		const text = document.lineAt(i).text;
+		const m = text.match(headingRegex);
+		if (m) {
+			const level = m[1].length; // number of '#'
+			const headingText = m[2].trim();
+			const indent = '  '.repeat(Math.max(0, level - 1));
+			const label = `${indent}${headingText}`;
+			picks.push({ label, detail: `Line ${i + 1}`, lineNumber: i, level });
+		}
+	}
+	return picks;
+}
+
 async function showKeywordMatches(editor: vscode.TextEditor, keyword: string) {
 	const picks = buildKeywordPicks(editor.document, keyword);
 	if (picks.length === 0) {
@@ -102,6 +123,24 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		const kw = filterSortService.getKeywordFilter();
 		if (!kw) { vscode.window.showInformationMessage('No keyword set. Use Search by Keyword first.'); return; }
 		await showKeywordMatches(editor, kw);
+	}));
+
+	// Show Markdown headings in a QuickPick for navigation
+	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.showMarkdownHeadings', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
+		const doc = editor.document;
+		const isMarkdown = doc.languageId === 'markdown' || doc.fileName.toLowerCase().endsWith('.md') || doc.fileName.toLowerCase().endsWith('.markdown');
+		if (!isMarkdown) { vscode.window.showInformationMessage('Active document is not a Markdown file'); return; }
+
+		const picks = buildHeadingPicks(doc);
+		if (picks.length === 0) { vscode.window.showInformationMessage('No headings found in current document'); return; }
+
+		const qp = picks.map(p => ({ label: p.label, detail: p.detail, lineNumber: p.lineNumber }));
+		const pick = await vscode.window.showQuickPick(qp as any, { placeHolder: 'Select a heading to open' });
+		if (pick) {
+			await vscode.commands.executeCommand('voiceitems.jumpToLine', doc.uri, (pick as any).lineNumber);
+		}
 	}));
 
 	// Toggle complete/incomplete on a line. Accepts either (uri, lineNumber) or a tree-item-like arg

@@ -32,6 +32,12 @@
         "category": "VoiceItems"
       },
       {
+        "command": "voiceitems.showMarkdownHeadings",
+        "title": "Show Markdown Headings",
+        "icon": "$(symbol-key)",
+        "category": "VoiceItems"
+      },
+      {
         "command": "voiceitems.toggleComplete",
         "title": "Toggle Complete",
         "icon": "$(checklist)",

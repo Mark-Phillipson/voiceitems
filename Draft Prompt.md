@@ -1,2 +1,0 @@
-
-Can we have a extra command in the command palette that would allow us to navigate by headings in a markdown file so it would show the main heading and any subheadings with the appropriate intense so we can select their header and go to that header in the document? This would be similar to the "Show items (Quick Pick)" command but specifically for markdown headings.

@@ -53,6 +53,7 @@ VoiceItems provides quick-pick and editor-based navigation for lists in the curr
 - **Clear keyword filter**: `VoiceItems: Clear Keyword Filter`
 - **Show items (Quick Pick)**: `VoiceItems: Show Items (Quick Pick)` — voice-friendly list selection from the current document
 - **Toggle complete**: `VoiceItems: Toggle Complete` — toggle the checkbox on a specified line
+- **Show Markdown headings**: `VoiceItems: Show Markdown Headings` — navigate by headings in a Markdown file
 
 
 ### Keyboard Shortcuts
