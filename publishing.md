@@ -1,7 +1,7 @@
 # Publishing the extension
 
 ## Prerequisites
-- DevOps (https://dev.azure.com/mspsystems) or GitHub account
+- DevOps (https://dev.azure.com/mspsystemsSmart) or GitHub account
 
 - Node.js and npm installed
 - A Publisher in the Visual Studio Marketplace (see https://marketplace.visualstudio.com/manage)
