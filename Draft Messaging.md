@@ -1,2 +1,2 @@
 
- can we change the priority items to match those used by Github so we're all using the same terminology.
+Please make the list of supported priorities configurable via the `voiceitems.priorities` setting. By default, set the priorities to GitHub-style terminology in ascending order (lowest to highest): `low`, `medium`, `high`, `critical` so they match what GitHub users commonly use in issues.

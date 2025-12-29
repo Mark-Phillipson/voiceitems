@@ -7,7 +7,7 @@ VoiceItems provides quick-pick and editor-based navigation for lists in the curr
 ## Features
 
 ### 📝 Multiple File Format Support
-- **`.tasks`/`.todo`/`.task` files**: Checkbox syntax `[ ]` and `[x]`, priority markers `!critical`, `!high`, `!medium`, `!low`
+- **`.tasks`/`.todo`/`.task` files**: Checkbox syntax `[ ]` and `[x]`, priority markers `!low`, `!medium`, `!high`, `!critical` (defaults; configurable via the `voiceitems.priorities` setting) 
 - **Markdown files**: Standard list items with optional task checkboxes `- [ ]` and `- [x]`
 - **Plain text files**: Any `.txt` or `.list` file with line-based items
 - **Common syntax**: Tags `#tagname`, projects `@projectname` work across all formats
@@ -63,6 +63,10 @@ VoiceItems provides quick-pick and editor-based navigation for lists in the curr
 ### Voice tips
 - Use **Show Filtered Items** and speak the item number (e.g., "one" or "three") to jump to an item quickly.
 - Use **Open Filtered Document** to get a plain editor view containing only matched lines; run **Jump to Original (from Filtered Doc)** on a selected line to navigate back to the source.
+
+### Configuration
+
+- **Priorities**: The list of supported priorities is configurable via the `voiceitems.priorities` setting (ascending order: lowest → highest). By default this extension uses GitHub-style priorities: `low`, `medium`, `high`, `critical`.
 
 ## Requirements
 

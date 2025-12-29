@@ -70,7 +70,7 @@ export class FilterSortService {
             case 'priority':
                 return sorted.sort((a, b) => {
                     const config = vscode.workspace.getConfiguration('voiceitems');
-                    const priorities = config.get<string[]>('priorities', ['backburner', 'low', 'medium', 'routine', 'priority', 'immediate', 'flash']);
+                    const priorities = config.get<string[]>('priorities', ['low', 'medium', 'high', 'critical']);
                     const priorityOrder: Record<string, number> = {};
                     priorities.forEach((p, idx) => priorityOrder[p.toLowerCase()] = idx);
                     const aOrder = a.priority ? (priorityOrder[a.priority.toLowerCase()] ?? 99) : 99;

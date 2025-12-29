@@ -318,7 +318,7 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 			const priorityRegex = /!([A-Za-z0-9_-]+)/;
 			const match = priorityRegex.exec(text);
 			const config = vscode.workspace.getConfiguration('voiceitems');
-			const priorities = config.get<string[]>('priorities', ['backburner', 'low', 'medium', 'routine', 'priority', 'immediate', 'flash']);
+			const priorities = config.get<string[]>('priorities', ['low', 'medium', 'high', 'critical']);
 
 			if (match) {
 				const current = match[1];

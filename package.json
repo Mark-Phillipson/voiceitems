@@ -62,8 +62,8 @@
         "voiceitems.priorities": {
           "type": "array",
           "items": { "type": "string" },
-          "default": ["backburner", "low", "medium", "routine", "priority", "immediate", "flash"],
-          "description": "List of supported priorities in ascending order (lowest to highest). Do not include the leading '!'."
+          "default": ["low", "medium", "high", "critical"],
+          "description": "List of supported priorities in ascending order (lowest to highest). Do not include the leading '!'. Defaults to GitHub-style priorities [\"low\", \"medium\", \"high\", \"critical\"]."
         }
       }
     }
