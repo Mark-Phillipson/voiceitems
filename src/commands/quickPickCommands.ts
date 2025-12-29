@@ -33,7 +33,7 @@ function escapeRegExp(s: string) {
  * Returns label with indentation representing heading level, and line number
  */
 export function buildHeadingPicks(document: vscode.TextDocument) {
-	const picks: Array<{ label: string; detail: string; lineNumber: number; level: number }> = [];
+	const picks: Array<{ label: string; description?: string; lineNumber: number; level: number }> = [];
 	const headingRegex = /^\s{0,3}(#{1,6})\s+(.*)$/;
 	for (let i = 0; i < document.lineCount; i++) {
 		const text = document.lineAt(i).text;
@@ -42,8 +42,9 @@ export function buildHeadingPicks(document: vscode.TextDocument) {
 			const level = m[1].length; // number of '#'
 			const headingText = m[2].trim();
 			const indent = '  '.repeat(Math.max(0, level - 1));
-			const label = `${indent}${headingText}`;
-			picks.push({ label, detail: `Line ${i + 1}`, lineNumber: i, level });
+			// Use guillemet-style highlighting (»text«) and preserve indentation
+			const label = `${indent}»${headingText}«`;
+			picks.push({ label, lineNumber: i, level });
 		}
 	}
 	return picks;
@@ -61,6 +62,44 @@ async function showKeywordMatches(editor: vscode.TextEditor, keyword: string) {
 	if (pick) {
 		await vscode.commands.executeCommand('voiceitems.jumpToLine', editor.document.uri, (pick as any).lineNumber);
 	}
+}
+
+// Apply temporary colored decorations to headings in the given editor. Returns a cleanup function.
+function applyHeadingDecorations(editor: vscode.TextEditor, picks: Array<{ label: string; lineNumber: number; level: number }>) {
+	// Create decoration types (per level) — lightweight and disposed when cleanup is called
+	const decTypes = [
+		vscode.window.createTextEditorDecorationType({ color: '#d9534f', fontWeight: 'bold' }), // H1
+		vscode.window.createTextEditorDecorationType({ color: '#5cb85c', fontWeight: 'bold' }), // H2
+		vscode.window.createTextEditorDecorationType({ color: '#0275d8' }), // H3
+		vscode.window.createTextEditorDecorationType({ color: '#6f42c1' }), // H4
+		vscode.window.createTextEditorDecorationType({ color: '#343a40' }), // H5
+		vscode.window.createTextEditorDecorationType({ color: '#795548' })  // H6
+	];
+
+	const rangesByLevel: vscode.Range[][] = [[], [], [], [], [], []];
+	for (let i = 0; i < picks.length; i++) {
+		const p = picks[i];
+		const level = Math.max(1, Math.min(p.level, 6));
+		try {
+			const line = p.lineNumber;
+			const lineRange = editor.document.lineAt(line).range;
+			rangesByLevel[level - 1].push(lineRange);
+		} catch (err) {
+			// ignore if line not present
+		}
+	}
+
+	for (let lvl = 0; lvl < rangesByLevel.length; lvl++) {
+		editor.setDecorations(decTypes[lvl], rangesByLevel[lvl]);
+	}
+
+	// Remove decorations and dispose types
+	return () => {
+		for (let lvl = 0; lvl < decTypes.length; lvl++) {
+			editor.setDecorations(decTypes[lvl], []);
+			decTypes[lvl].dispose();
+		}
+	};
 }
 
 export function registerQuickPickCommands(context: vscode.ExtensionContext) {
@@ -125,7 +164,7 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		await showKeywordMatches(editor, kw);
 	}));
 
-	// Show Markdown headings in a QuickPick for navigation
+	// Show Markdown headings — apply temporary in-editor decorations to color headings while QuickPick is open
 	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.showMarkdownHeadings', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
@@ -136,8 +175,27 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		const picks = buildHeadingPicks(doc);
 		if (picks.length === 0) { vscode.window.showInformationMessage('No headings found in current document'); return; }
 
-		const qp = picks.map(p => ({ label: p.label, detail: p.detail, lineNumber: p.lineNumber }));
-		const pick = await vscode.window.showQuickPick(qp as any, { placeHolder: 'Select a heading to open' });
+		// Apply temporary decorations to the active editor showing colored headings in-place
+		const clearDecorations = applyHeadingDecorations(editor, picks);
+
+		// Setup a quick listener to clear decorations when the active editor changes
+		let activeChangeDisposable: vscode.Disposable | undefined;
+		activeChangeDisposable = vscode.window.onDidChangeActiveTextEditor(ev => {
+			if (!ev || ev.document.uri.toString() !== doc.uri.toString()) {
+				if (activeChangeDisposable) { activeChangeDisposable.dispose(); }
+				clearDecorations();
+			}
+		});
+		context.subscriptions.push(activeChangeDisposable!);
+
+		// Show a clean QuickPick (strip guillemet highlighting while keeping indentation)
+		const qpItems = picks.map(p => ({ label: p.label.replace(/[»«]/g, '').replace(/^\s+/, match => match), description: `Level ${p.level}`, lineNumber: p.lineNumber }));
+		const pick = await vscode.window.showQuickPick(qpItems as any, { placeHolder: 'Select a heading to open', ignoreFocusOut: false });
+
+		// Cleanup decorations and listener
+		clearDecorations();
+		if (activeChangeDisposable) { activeChangeDisposable.dispose(); }
+
 		if (pick) {
 			await vscode.commands.executeCommand('voiceitems.jumpToLine', doc.uri, (pick as any).lineNumber);
 		}

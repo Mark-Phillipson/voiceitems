@@ -53,7 +53,7 @@ suite('Extension Test Suite', () => {
 		await vscode.workspace.fs.delete(uri);
 	});
 
-	test('buildHeadingPicks returns headings with indentation and line numbers', async () => {
+	test('buildHeadingPicks returns headings with indentation and highlight markers', async () => {
 		const content = `# Top level\nSome intro text\n## Subheading\n### Sub-sub\nAnother line\n# Another top`;
 		const uri = await makeFile('test-headings.md', content);
 		const doc = await vscode.workspace.openTextDocument(uri);
@@ -61,10 +61,10 @@ suite('Extension Test Suite', () => {
 		const picks = buildHeadingPicks(doc);
 		// We expect 4 headings: # Top level, ## Subheading, ### Sub-sub, # Another top
 		assert.strictEqual(picks.length, 4, 'Should find 4 headings');
-		assert.strictEqual(picks[0].label, 'Top level', 'First heading text');
-		assert.strictEqual(picks[1].label, '  Subheading', 'Second heading should be indented');
-		assert.strictEqual(picks[2].label, '    Sub-sub', 'Third heading should be further indented');
-		assert.strictEqual(picks[3].detail, 'Line 6', 'Line number should be reported correctly');
+		assert.ok(picks[0].label.includes('»Top level«'), 'First heading should be highlighted');
+		assert.ok(picks[1].label.startsWith('  »'), 'Second heading should preserve two-space indentation and highlight');
+		assert.ok(picks[2].label.startsWith('    »'), 'Third heading should preserve deeper indentation and highlight');
+		assert.strictEqual(picks[3].lineNumber, 5, 'Line number should be the index of the 4th heading (0-based)');
 
 		// cleanup
 		await vscode.workspace.fs.delete(uri);

@@ -37,6 +37,7 @@
         "icon": "$(symbol-key)",
         "category": "VoiceItems"
       },
+
       {
         "command": "voiceitems.toggleComplete",
         "title": "Toggle Complete",
