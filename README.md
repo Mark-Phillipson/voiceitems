@@ -55,6 +55,7 @@ VoiceItems provides quick-pick and editor-based navigation for lists in the curr
 - **Show items by priority**: `VoiceItems: Show Items by Priority` — pick one or more priorities to show matching items in the QuickPick
 - **Show incomplete items**: `VoiceItems: Show Incomplete Items` — show only uncompleted tasks in the QuickPick
 - **Show completed items**: `VoiceItems: Show Completed Items` — show only completed tasks in the QuickPick
+- **Show time range filters**: `VoiceItems: Show Time Range Filters` — drill into date ranges (Last hour, Today, Last 24 hours, Last 7 days, Last 30 days, Last year, or Custom), show counts and jump to the first matching row
 - **Toggle complete**: `VoiceItems: Toggle Complete` — toggle the checkbox on a specified line
 - **Show Markdown headings**: `VoiceItems: Show Markdown Headings` — navigate by headings in a Markdown file (highlights headings in the active editor while QuickPick is open; line numbers are not shown)
 

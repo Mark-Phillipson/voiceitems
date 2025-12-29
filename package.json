@@ -55,6 +55,12 @@
         "icon": "$(check)",
         "category": "VoiceItems"
       },
+      {
+        "command": "voiceitems.showTimeRangeFilters",
+        "title": "Show Time Range Filters",
+        "icon": "$(clock)",
+        "category": "VoiceItems"
+      },
 
       {
         "command": "voiceitems.toggleComplete",

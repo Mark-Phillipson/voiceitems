@@ -403,6 +403,71 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Show time-range filters (Last hour, Today, Last 24 hours, Last 7 days, Last 30 days, Last year, Custom)
+	async function showTimeRangeFilters() {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
+
+		const parser = parserFactory.getParser(editor.document);
+		if (!parser) { vscode.window.showInformationMessage('No supported document open'); return; }
+
+		const parseResult = parser.parse(editor.document);
+		const items = parseResult.items.filter(i => i.timestamp !== undefined).map(i => i as any);
+		if (items.length === 0) { vscode.window.showInformationMessage('No dated lines found in current document'); return; }
+
+		const now = Date.now();
+		const toMs = (days: number) => days * 24 * 60 * 60 * 1000;
+		const startOfDay = (t: number) => { const d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+
+		const ranges: Array<{ key: string; label: string; start?: number; end: number }> = [
+			{ key: 'lastHour', label: 'Last hour', start: now - (60 * 60 * 1000), end: now },
+			{ key: 'today', label: 'Today', start: startOfDay(now), end: now },
+			{ key: 'last24Hours', label: 'Last 24 hours', start: now - (24 * 60 * 60 * 1000), end: now },
+			{ key: 'last7Days', label: 'Last 7 days', start: now - toMs(7), end: now },
+			{ key: 'last30Days', label: 'Last 30 days', start: now - toMs(30), end: now },
+			{ key: 'last365Days', label: 'Last 365 days', start: now - toMs(365), end: now },
+			{ key: 'custom', label: 'Custom range', start: undefined, end: now }
+		];
+
+		const qpItems = ranges.map(r => {
+			if (r.key === 'custom') { return { label: r.label, description: 'Specify a custom start and end date/time', key: r.key }; }
+			const matches = items.filter(i => (i.timestamp as number) >= (r.start as number) && (i.timestamp as number) <= r.end);
+			const firstLine = matches.length > 0 ? matches.reduce((a,b) => a.lineNumber < b.lineNumber ? a : b).lineNumber + 1 : undefined;
+			return { label: `${r.label} — ${matches.length} rows`, description: firstLine ? `First: Line ${firstLine}` : undefined, key: r.key, matches };
+		});
+
+		const pick = await vscode.window.showQuickPick(qpItems as any, { placeHolder: 'Select a time range to navigate to (jumps to first matching line)' });
+		if (!pick) { return; }
+
+		if ((pick as any).key === 'custom') {
+			const startInput = await vscode.window.showInputBox({ prompt: 'Enter start date/time (ISO, YYYY-MM-DD, or natural language)', placeHolder: 'e.g. 2025-12-28T10:00 or 2025-12-28' });
+			if (!startInput) { vscode.window.showInformationMessage('Custom range cancelled'); return; }
+			const startTs = Date.parse(startInput);
+			if (isNaN(startTs)) { vscode.window.showInformationMessage('Could not parse start date'); return; }
+
+			const endInput = await vscode.window.showInputBox({ prompt: 'Enter end date/time (ISO, YYYY-MM-DD, or natural language)', placeHolder: 'e.g. 2025-12-29T13:45 or 2025-12-29', value: new Date().toISOString() });
+			if (!endInput) { vscode.window.showInformationMessage('Custom range cancelled'); return; }
+			const endTs = Date.parse(endInput);
+			if (isNaN(endTs)) { vscode.window.showInformationMessage('Could not parse end date'); return; }
+
+			if (endTs < startTs) { vscode.window.showInformationMessage('End date must be after start date'); return; }
+
+			const matches = items.filter(i => (i.timestamp as number) >= startTs && (i.timestamp as number) <= endTs);
+			if (matches.length === 0) { vscode.window.showInformationMessage('No rows found in selected range'); return; }
+			const first = matches.reduce((a,b) => a.lineNumber < b.lineNumber ? a : b);
+			await vscode.commands.executeCommand('voiceitems.jumpToLine', editor.document.uri, first.lineNumber);
+			return;
+		}
+
+		// Predefined range chosen
+		if (!((pick as any).matches) || ((pick as any).matches as any).length === 0) { vscode.window.showInformationMessage('No rows found for selected range'); return; }
+		const first = (((pick as any).matches as any).reduce((a: any, b: any) => a.lineNumber < b.lineNumber ? a : b));
+		await vscode.commands.executeCommand('voiceitems.jumpToLine', editor.document.uri, first.lineNumber);
+	}
+
+	// Expose a single command that drills into time-based filters
+	safeRegister('voiceitems.showTimeRangeFilters', async () => { await showTimeRangeFilters(); });
+
 	// Change priority for an item (increase/up or decrease/down)
 	async function changePriority(direction: 'up' | 'down', args: any[]) {
 		let uri: vscode.Uri | undefined;

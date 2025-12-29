@@ -8,7 +8,7 @@ const LINE_LIMIT = 1000;
  * Detects indentation and optional tags/projects
  */
 export class PlainLineParser implements ListParser {
-    supportedExtensions = ['.txt', '.list'];
+    supportedExtensions = ['.txt', '.list', '.log'];
 
     parse(document: vscode.TextDocument): ParseResult {
         const items: ListItem[] = [];
@@ -50,13 +50,52 @@ export class PlainLineParser implements ListParser {
         const projectMatch = text.match(/@(\w+)/);
         const project = projectMatch ? projectMatch[1] : undefined;
 
+        const ts = this.tryParseDate(text);
+
         return {
             lineNumber,
             text: text.trimEnd(),
             level,
             tags,
             completed: false,
-            project
+            project,
+            timestamp: ts
         };
+    }
+
+    /**
+     * Try to parse a timestamp at the start of the line. Returns ms since epoch or undefined.
+     * Supports common formats like ISO 8601, `YYYY-MM-DD HH:mm[:ss]`, `YYYY/MM/DD`, and variants.
+     */
+    private tryParseDate(text: string): number | undefined {
+        const s = text.trim();
+        // Common ISO 8601 at start
+        const isoMatch = s.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.+-Z]+)(?:\s|$)/);
+        if (isoMatch) {
+            const t = Date.parse(isoMatch[1]);
+            if (!isNaN(t)) { return t; }
+        }
+
+        // YYYY-MM-DD HH:MM:SS or YYYY-MM-DD HH:MM
+        const ymdMatch = s.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})[ T]([0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]+)?)?)(?:\s|$)/);
+        if (ymdMatch) {
+            const iso = `${ymdMatch[1]}T${ymdMatch[2]}`;
+            const t = Date.parse(iso);
+            if (!isNaN(t)) { return t; }
+        }
+
+        // YYYY/MM/DD or DD/MM/YYYY (try YYYY first)
+        const ymdSlash = s.match(/^([0-9]{4}\/\d{2}\/\d{2})(?:\s|$)/);
+        if (ymdSlash) {
+            const t = Date.parse(ymdSlash[1]);
+            if (!isNaN(t)) { return t; }
+        }
+
+        // Fallback: attempt to parse the first token as a date
+        const firstToken = s.split(/\s+/)[0];
+        const t = Date.parse(firstToken);
+        if (!isNaN(t)) { return t; }
+
+        return undefined;
     }
 }

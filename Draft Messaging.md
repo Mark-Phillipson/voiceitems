@@ -1,9 +1,4 @@
 
-Implemented: Added QuickPick commands
+If the current document is a log file with a time and date on every line can we include the ability to navigate to a specific date and time for example we could have last hour today, last twenty four hours, last week, last month, last year, custom range etc.
 
-- `voiceitems.showPriorityItems` — prompts to pick one or more priorities (from `voiceitems.priorities`) and shows matching items in the QuickPick.
-- `voiceitems.showIncompleteItems` — shows only uncompleted tasks in the QuickPick.
-- `voiceitems.showCompletedItems` — shows only completed tasks in the QuickPick.
-
-Also added a helper `buildPriorityPicks(document, priorities)` (exported) and unit tests for it.
-
+ the quick pit would be able to show the number of rows for each of the filter types and go to the first row of that filter type when selected

@@ -17,6 +17,8 @@ export interface ListItem {
     priority?: string;
     /** Project or section name */
     project?: string;
+    /** Optional timestamp (ms since epoch) when a line begins with a date/time */
+    timestamp?: number;
 }
 
 export interface ParseResult {
