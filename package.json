@@ -2,7 +2,7 @@
   "name": "voiceitems",
   "displayName": "VoiceItems",
   "description": "Maintain and edit lists with Cursorless extension  and apply filter and sort",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "marcusvoicecoder",
   "license": "MIT",
   "icon": "images/icon.png",
