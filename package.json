@@ -2,7 +2,7 @@
   "name": "voiceitems",
   "displayName": "VoiceItems",
   "description": "Maintain and edit lists with Cursorless extension  and apply filter and sort",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "marcusvoicecoder",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -68,7 +68,6 @@
         "icon": "$(clock)",
         "category": "VoiceItems"
       },
-
       {
         "command": "voiceitems.toggleComplete",
         "title": "Toggle Complete",
@@ -92,8 +91,15 @@
       "properties": {
         "voiceitems.priorities": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["low", "medium", "high", "critical"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
           "description": "List of supported priorities in ascending order (lowest to highest). Do not include the leading '!'. Defaults to GitHub-style priorities [\"low\", \"medium\", \"high\", \"critical\"]."
         }
       }
