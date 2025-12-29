@@ -12,80 +12,7 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "views": {
-      "explorer": [
-        {
-          "id": "voiceitems.listView",
-          "name": "List Items"
-        }
-      ]
-    },
     "commands": [
-      {
-        "command": "voiceitems.refresh",
-        "title": "Refresh",
-        "icon": "$(refresh)",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.sortByPriority",
-        "title": "Sort by Priority",
-        "icon": "$(arrow-up)",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.sortAlpha",
-        "title": "Sort Alphabetically",
-        "icon": "$(sort-precedence)",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.sortByCompletion",
-        "title": "Sort by Completion",
-        "icon": "$(check)",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.sortNone",
-        "title": "Original Order",
-        "icon": "$(list-ordered)",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.filterAll",
-        "title": "Show All Items",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.filterIncomplete",
-        "title": "Show Incomplete Only",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.filterCompleted",
-        "title": "Show Completed Only",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.groupByPriority",
-        "title": "Group by Priority",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.groupByProject",
-        "title": "Group by Project",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.groupByTag",
-        "title": "Group by Tag",
-        "category": "VoiceItems"
-      },
-      {
-        "command": "voiceitems.groupNone",
-        "title": "No Grouping",
-        "category": "VoiceItems"
-      },
       {
         "command": "voiceitems.searchKeyword",
         "title": "Search by Keyword",
@@ -97,88 +24,18 @@
         "title": "Clear Keyword Filter",
         "icon": "$(clear-all)",
         "category": "VoiceItems"
-      }
-    ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "voiceitems.refresh",
-          "when": "view == voiceitems.listView",
-          "group": "navigation@1"
-        },
-        {
-          "command": "voiceitems.searchKeyword",
-          "when": "view == voiceitems.listView",
-          "group": "navigation@2"
-        },
-        {
-          "command": "voiceitems.sortByPriority",
-          "when": "view == voiceitems.listView",
-          "group": "1_sort@1"
-        },
-        {
-          "command": "voiceitems.sortAlpha",
-          "when": "view == voiceitems.listView",
-          "group": "1_sort@2"
-        },
-        {
-          "command": "voiceitems.sortByCompletion",
-          "when": "view == voiceitems.listView",
-          "group": "1_sort@3"
-        },
-        {
-          "command": "voiceitems.sortNone",
-          "when": "view == voiceitems.listView",
-          "group": "1_sort@4"
-        },
-        {
-          "command": "voiceitems.filterAll",
-          "when": "view == voiceitems.listView",
-          "group": "2_filter@1"
-        },
-        {
-          "command": "voiceitems.filterIncomplete",
-          "when": "view == voiceitems.listView",
-          "group": "2_filter@2"
-        },
-        {
-          "command": "voiceitems.filterCompleted",
-          "when": "view == voiceitems.listView",
-          "group": "2_filter@3"
-        },
-        {
-          "command": "voiceitems.groupByPriority",
-          "when": "view == voiceitems.listView",
-          "group": "3_group@1"
-        },
-        {
-          "command": "voiceitems.groupByProject",
-          "when": "view == voiceitems.listView",
-          "group": "3_group@2"
-        },
-        {
-          "command": "voiceitems.groupByTag",
-          "when": "view == voiceitems.listView",
-          "group": "3_group@3"
-        },
-        {
-          "command": "voiceitems.groupNone",
-          "when": "view == voiceitems.listView",
-          "group": "3_group@4"
-        }
-      ]
-    },
-    "keybindings": [
-      {
-        "command": "voiceitems.groupByPriority",
-        "key": "alt+p",
-        "when": "view == voiceitems.listView && viewItem == group"
       },
       {
-        "command": "voiceitems.searchKeyword",
-        "key": "ctrl+f",
-        "mac": "cmd+f",
-        "when": "view == voiceitems.listView"
+        "command": "voiceitems.showItemsQuickPick",
+        "title": "Show Items (Quick Pick)",
+        "icon": "$(list-selection)",
+        "category": "VoiceItems"
+      },
+      {
+        "command": "voiceitems.toggleComplete",
+        "title": "Toggle Complete",
+        "icon": "$(checklist)",
+        "category": "VoiceItems"
       }
     ]
   },

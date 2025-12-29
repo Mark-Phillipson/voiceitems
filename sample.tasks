@@ -26,6 +26,7 @@
 ### High Priority
 [ ] Write user guide for voice control with Cursorless !high #documentation
 [ ] Create examples for different file formats !medium #examples #tutorial
+[ ] Document configuration options for filters and sorts !medium #configuration
 
 ### Low Priority
 [ ] Add screenshots to README !low #readme

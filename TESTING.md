@@ -8,46 +8,32 @@
 
 2. **Open the sample file**:
    - In the new VS Code window, open `sample.tasks`
-   - The "List Items" view should appear in the Explorer sidebar
 
 3. **Test basic functionality**:
-   - Click on any item in the tree to jump to its line
-   - Try the toolbar buttons to sort/filter/group
-   - Use `Ctrl+F` in the tree view to search by keyword
+   - Run `VoiceItems: Show Items (Quick Pick)` to show items parsed from the active document
+   - Select an item to jump to its line in the editor
+   - Use `VoiceItems: Toggle Complete` to mark a task complete/incomplete by passing its URI and line number
 
-4. **Test filters**:
-   - Click "Show Incomplete Only" - should hide completed items
-   - Click "Show Completed Only" - should show only [x] items
-   - Click "Show All Items" - restore all
+4. **Test keyword search**:
+   - Run `VoiceItems: Search by Keyword` and enter a term such as `parser`
+   - Run `VoiceItems: Show Items (Quick Pick)` to see filtered results
+   - Run `VoiceItems: Clear Keyword Filter` to remove the filter
 
-5. **Test sorting**:
-   - Click "Sort by Priority" - items should order by !critical, !high, !medium, !low
-   - Click "Sort Alphabetically" - items should sort A-Z
-   - Click "Original Order" - restore file order
-
-6. **Test grouping**:
-   - Click "Group by Priority" - items should be organized under Critical, High, Medium, Low sections
-   - Click "Group by Project" - items should be organized by @project tags
-   - Click "Group by Tag" - items should be organized by #tags
-   - Click "No Grouping" - restore flat list
-
-7. **Test keyword search**:
-   - Click the search icon or press `Ctrl+F`
-   - Type "parser" - should show only items containing that word
-   - Clear the filter to restore all items
-
-8. **Test editing**:
+5. **Test editing**:
    - Edit any line in the text editor
-   - The tree view should auto-refresh
-   - Jump to line should still work after edits
+   - Run `VoiceItems: Show Items (Quick Pick)` again to verify the updated items
 
-9. **Test with Markdown**:
+6. **Test with Markdown**:
    - Create a `.md` file with list items:
      ```markdown
      - [ ] Task one #test
      - [x] Task two @project
      ```
-   - Tree view should parse and display these items
+   - Run `VoiceItems: Show Items (Quick Pick)` to verify the items are parsed
+
+7. **Test large file warning**:
+   - Create a file with > 1000 lines
+   - Should see a warning message about performance
 
 10. **Test large file warning**:
     - Create a file with > 1000 lines

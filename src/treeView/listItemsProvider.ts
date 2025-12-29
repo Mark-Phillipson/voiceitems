@@ -105,6 +105,33 @@ export class ListItemsProvider implements vscode.TreeDataProvider<vscode.TreeIte
         this._onDidChangeTreeData.fire();
     }
 
+    /**
+     * Get filtered items according to current modes (useful for QuickPick / filtered doc)
+     */
+    getFilteredItems(): { items: ListItem[]; documentUri: vscode.Uri | null } {
+        if (!this.parseResult) {
+            return { items: [], documentUri: null };
+        }
+
+        const groups = this.filterSortService.transform(
+            this.parseResult.items,
+            this.filterMode,
+            this.sortMode,
+            this.groupMode
+        );
+
+        if (this.groupMode === 'none') {
+            const items = groups.get('All Items') || [];
+            return { items, documentUri: this.currentDocument ? this.currentDocument.uri : null };
+        } else {
+            const items: ListItem[] = [];
+            for (const [, groupItems] of groups) {
+                items.push(...groupItems);
+            }
+            return { items, documentUri: this.currentDocument ? this.currentDocument.uri : null };
+        }
+    }
+
     getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
         return element;
     }

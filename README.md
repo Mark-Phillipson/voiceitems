@@ -2,7 +2,7 @@
 
 **Maintain and edit lists with voice control via Cursorless extension - apply filters, sorts, and navigate easily.**
 
-VoiceItems provides a sidebar tree view for filtering, sorting, and navigating text-based lists while preserving full Cursorless editing capabilities in the original text editor. Perfect for managing tasks, todo lists, and any structured text files.
+VoiceItems provides quick-pick and editor-based navigation for lists in the current document while preserving full Cursorless editing capabilities in the original text editor. Perfect for managing tasks, todo lists, and any structured text files.
 
 ## Features
 
@@ -12,23 +12,18 @@ VoiceItems provides a sidebar tree view for filtering, sorting, and navigating t
 - **Plain text files**: Any `.txt` or `.list` file with line-based items
 - **Common syntax**: Tags `#tagname`, projects `@projectname` work across all formats
 
-### 🎯 Filtering & Sorting
-- **Filter by completion**: Show all, incomplete only, or completed only
-- **Sort options**: Priority, alphabetically, completion status, or original order
-- **Keyword search**: Find items by text, tags, or projects
-- **Smart grouping**: Group by priority, project, or tags
+### 🎯 Keyword Filtering
+- **Keyword search**: Find items by text, tags, or projects in the current document
 
-### 🚀 Cursorless-Safe Navigation
-- **Read-only tree view**: Navigation only - all editing happens in the original text editor
-- **Jump to line**: Click any item to navigate directly to its line in the editor
-- **Preserves voice control**: Full Cursorless decorators and targets remain intact
-- **Hierarchical display**: Automatic detection of indented sub-items
+### 🚀 QuickPick & Editor Integration
+- **QuickPick**: Show a voice-friendly list of items from the current document
+- **Jump to line**: Select an item and jump directly to its line in the editor
+- **Toggle complete**: Mark tasks complete/incomplete directly in the editor
 
 ### ⚡ Performance & Convenience
-- **Auto-refresh**: Tree updates automatically when you edit the file
 - **Large file warning**: Get notified when files exceed ~1000 lines
-- **Keyboard shortcuts**: Quick access to common operations
-- **File watching**: Changes are detected and displayed immediately
+- **Keyboard shortcuts**: Quick access to common operations (via commands)
+
 
 ## Usage
 
@@ -54,15 +49,19 @@ VoiceItems provides a sidebar tree view for filtering, sorting, and navigating t
 ```
 
 ### Commands
-- **Refresh**: `VoiceItems: Refresh` - Manually refresh the tree
-- **Sort**: Sort by priority, alphabetically, completion, or original order
-- **Filter**: Show all, incomplete only, or completed only
-- **Group**: Group items by priority, project, tag, or no grouping
-- **Search**: `Ctrl+F` (Mac: `Cmd+F`) when focused on List Items view
+- **Search by keyword**: `VoiceItems: Search by Keyword` — set a filter used by the QuickPick
+- **Clear keyword filter**: `VoiceItems: Clear Keyword Filter`
+- **Show items (Quick Pick)**: `VoiceItems: Show Items (Quick Pick)` — voice-friendly list selection from the current document
+- **Toggle complete**: `VoiceItems: Toggle Complete` — toggle the checkbox on a specified line
+
 
 ### Keyboard Shortcuts
-- `Ctrl+F` / `Cmd+F`: Search by keyword (when tree view is focused)
-- `Alt+P`: Group by priority (when in tree view)
+- `Ctrl+Alt+F` / `Cmd+Alt+F`: Search by keyword (run command)
+- You can bind the QuickPick or Toggle commands to your preferred keys via VS Code keyboard shortcuts.
+
+### Voice tips
+- Use **Show Filtered Items** and speak the item number (e.g., "one" or "three") to jump to an item quickly.
+- Use **Open Filtered Document** to get a plain editor view containing only matched lines; run **Jump to Original (from Filtered Doc)** on a selected line to navigate back to the source.
 
 ## Requirements
 
