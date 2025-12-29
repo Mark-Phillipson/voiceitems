@@ -117,8 +117,15 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 			uri = args[0].documentUri;
 			lineNumber = args[0].lineNumber;
 		} else {
-			vscode.window.showInformationMessage('No item selected to toggle');
-			return;
+			// No explicit args — fall back to the active editor's current line
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				uri = editor.document.uri;
+				lineNumber = editor.selection.active.line;
+			} else {
+				vscode.window.showInformationMessage('No item selected to toggle');
+				return;
+			}
 		}
 
 		if (!uri || lineNumber === undefined) {
@@ -130,10 +137,13 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 			const document = await vscode.workspace.openTextDocument(uri);
 			const line = document.lineAt(lineNumber!);
 			let text = line.text;
-			const checkboxMatch = text.match(/\[([ xX])\]/);
-			if (checkboxMatch) {
-				const newCheck = checkboxMatch[1].toLowerCase() === 'x' ? '[ ]' : '[x]';
-				text = text.replace(/\[[ xX]\]/, newCheck);
+			// Match a checkbox with any whitespace inside the brackets (e.g. `[ ]`, `[  ]`, `[x]`, `[ X ]`)
+			const checkboxRegex = /\[\s*[xX]?\s*\]/;
+			const hasCheckbox = checkboxRegex.test(text);
+			if (hasCheckbox) {
+				const isChecked = /\[\s*[xX]\s*\]/.test(text);
+				const newCheck = isChecked ? '[ ]' : '[x]';
+				text = text.replace(checkboxRegex, newCheck);
 			} else {
 				// insert checking marker after list marker if possible
 				const replaced = text.replace(/^(\s*([-*+]|\d+\.)\s*)/, `$1[x] `);

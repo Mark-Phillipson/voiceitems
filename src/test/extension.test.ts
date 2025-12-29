@@ -73,7 +73,62 @@ suite('Extension Test Suite', () => {
 		await vscode.commands.executeCommand('voiceitems.toggleComplete', uri, 0);
 		const after2 = await vscode.workspace.openTextDocument(uri);
 		const line2 = after2.lineAt(0).text;
-		assert.ok(/\[\s?\]/.test(line2), 'Line should be unchecked after second toggle');
+			assert.strictEqual(line2, '- [ ] Flip me', 'Line should be restored to original unchecked form');
+
+			// cleanup
+			await vscode.workspace.fs.delete(uri);
+		});
+
+	test('toggleComplete handles variant spacing inside checkbox', async () => {
+		const content = `- [  ] Spacing`;
+		const uri = await makeFile('test-toggle-spacing.tasks', content);
+		const doc = await vscode.workspace.openTextDocument(uri);
+
+		// Register commands (now operate on documents directly)
+		registerQuickPickCommands(({} as unknown) as vscode.ExtensionContext);
+
+		// Execute toggle on line 0 (from double-space to checked)
+		await vscode.commands.executeCommand('voiceitems.toggleComplete', uri, 0);
+		// Re-open document to verify change
+		const after = await vscode.workspace.openTextDocument(uri);
+		const line = after.lineAt(0).text;
+		assert.ok(/\[x\]/i.test(line), 'Line should be checked after toggle from double-space');
+
+		// Toggle back to unchecked
+		await vscode.commands.executeCommand('voiceitems.toggleComplete', uri, 0);
+		const after2 = await vscode.workspace.openTextDocument(uri);
+		const line2 = after2.lineAt(0).text;
+		assert.strictEqual(line2, '- [ ] Spacing');
+
+		// cleanup
+		await vscode.workspace.fs.delete(uri);
+	});
+
+	test('toggleComplete uses active editor current line when no args provided', async () => {
+		const content = `- [ ] Active`;
+		const uri = await makeFile('test-toggle-active.tasks', content);
+		const doc = await vscode.workspace.openTextDocument(uri);
+		const editor = await vscode.window.showTextDocument(doc);
+		// place cursor at start of line 0
+		const pos = new vscode.Position(0, 0);
+		editor.selection = new vscode.Selection(pos, pos);
+
+		// Register commands (now operate on documents directly)
+		registerQuickPickCommands(({} as unknown) as vscode.ExtensionContext);
+
+		// Call command without args
+		await vscode.commands.executeCommand('voiceitems.toggleComplete');
+
+		const after = await vscode.workspace.openTextDocument(uri);
+		const line = after.lineAt(0).text;
+		assert.ok(/\[x\]/i.test(line), 'Line should be checked when toggling with active editor');
+
+		// Toggle back with no args
+		// ensure active editor still selected
+		await vscode.commands.executeCommand('voiceitems.toggleComplete');
+		const after2 = await vscode.workspace.openTextDocument(uri);
+		const line2 = after2.lineAt(0).text;
+		assert.strictEqual(line2, '- [ ] Active');
 
 		// cleanup
 		await vscode.workspace.fs.delete(uri);
