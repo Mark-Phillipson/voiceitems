@@ -1,5 +1,5 @@
 
-But## Plan: Generic List Filtering Tree (Cursorless-Safe)
+## Plan: Generic List Filtering Tree (Cursorless-Safe)
 
 Sidebar tree for any text-based lists, navigation-only, preserves full Cursorless editing in the original editor. Include keyboard accelerators on main branches and apply a ~1000-line soft cap.
 

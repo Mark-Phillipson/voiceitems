@@ -1,0 +1,41 @@
+# VoiceItems Sample Tasks
+
+## Project: VoiceItems Extension @voiceitems
+
+### Critical Tasks
+[ ] Implement pluggable parsers for .tasks, Markdown, and plain-line files !critical #parser #core
+[ ] Build read-only tree view with configurable filters/sorts !critical #ui #treeview
+
+### High Priority  
+[ ] Add jump-to-line navigation from tree items into original text editor !high #navigation #cursorless
+[ ] Wire file watchers to re-parse on edits and reapply last active filter/sort !high #filewatcher
+
+### Medium Priority
+[ ] Surface limit handling: warn when file exceeds ~1000 lines !medium #performance
+  [ ] Show gentle warning message !medium
+  [ ] Suggest splitting by section/project !medium
+[ ] Implement keyword search filtering !medium #search #filter
+
+### Completed Items
+[x] Set up TypeScript project structure !high #setup
+[x] Configure esbuild bundler !medium #build
+[x] Add ESLint configuration !low #quality
+
+## Project: Documentation @docs
+
+### High Priority
+[ ] Write user guide for voice control with Cursorless !high #documentation
+[ ] Create examples for different file formats !medium #examples #tutorial
+
+### Low Priority
+[ ] Add screenshots to README !low #readme
+[ ] Record demo video !low #marketing
+
+## Notes and Ideas
+
+Some tasks without priorities or projects:
+[ ] Research voice command integration #research
+[ ] Consider adding export functionality #feature
+[ ] Explore integration with other task management tools
+
+Tags used: #parser #ui #navigation #performance #search #documentation
