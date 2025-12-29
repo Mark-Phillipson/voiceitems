@@ -185,5 +185,96 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		filterSortService.clearKeywordFilter();
 		vscode.window.showInformationMessage('Filter cleared');
 	}));
+
+	// Change priority for an item (increase/up or decrease/down)
+	async function changePriority(direction: 'up' | 'down', args: any[]) {
+		let uri: vscode.Uri | undefined;
+		let lineNumber: number | undefined;
+
+		if (args.length >= 2 && args[0] instanceof vscode.Uri && typeof args[1] === 'number') {
+			uri = args[0];
+			lineNumber = args[1];
+		} else if (args.length === 1 && args[0] && typeof args[0] === 'object' && args[0].lineNumber !== undefined && args[0].documentUri) {
+			uri = args[0].documentUri;
+			lineNumber = args[0].lineNumber;
+		} else {
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				uri = editor.document.uri;
+				lineNumber = editor.selection.active.line;
+			} else {
+				vscode.window.showInformationMessage('No item selected to change priority');
+				return;
+			}
+		}
+
+		if (!uri || lineNumber === undefined) {
+			vscode.window.showInformationMessage('No item selected to change priority');
+			return;
+		}
+
+		try {
+			const document = await vscode.workspace.openTextDocument(uri);
+			const line = document.lineAt(lineNumber);
+			let text = line.text;
+
+			const priorityRegex = /!([A-Za-z0-9_-]+)/;
+			const match = priorityRegex.exec(text);
+			const config = vscode.workspace.getConfiguration('voiceitems');
+			const priorities = config.get<string[]>('priorities', ['backburner', 'low', 'medium', 'routine', 'priority', 'immediate', 'flash']);
+
+			if (match) {
+				const current = match[1];
+				const idx = priorities.findIndex(p => p.toLowerCase() === current.toLowerCase());
+				if (idx === -1) {
+					vscode.window.showInformationMessage(`Priority "${current}" is not in configured priorities`);
+					return;
+				}
+
+				let newPriority: string | undefined;
+				if (direction === 'up') {
+					if (idx === priorities.length - 1) {
+						vscode.window.showInformationMessage('Already at highest priority');
+						return;
+					}
+					newPriority = priorities[idx + 1];
+				} else {
+					if (idx === 0) {
+						vscode.window.showInformationMessage('Already at lowest priority');
+						return;
+					}
+					newPriority = priorities[idx - 1];
+				}
+
+				const newText = text.replace(priorityRegex, `!${newPriority}`);
+				const edit = new vscode.WorkspaceEdit();
+				edit.replace(uri, line.range, newText);
+				await vscode.workspace.applyEdit(edit);
+				vscode.window.showInformationMessage(`Priority set to ${newPriority}`);
+			} else {
+				// No priority found — prompt user to pick one
+				const pick = await vscode.window.showQuickPick(priorities.map(p => ({ label: `!${p}`, description: p })), { placeHolder: 'Select priority to set' });
+				if (!pick) { return; }
+				const selected = pick.description || pick.label.replace(/^!/, '');
+				const newText = text.trim().length === 0 ? `!${selected}` : `${text} !${selected}`;
+				const edit = new vscode.WorkspaceEdit();
+				edit.replace(uri, line.range, newText);
+				await vscode.workspace.applyEdit(edit);
+				vscode.window.showInformationMessage(`Priority set to ${selected}`);
+			}
+		} catch (err) {
+			vscode.window.showErrorMessage(`Failed to change priority: ${String(err)}`);
+		}
+	}
+
+	// Increase priority (make more urgent)
+	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.increasePriority', async (...args: any[]) => {
+		await changePriority('up', args);
+	}));
+
+	// Decrease priority (make less urgent)
+	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.decreasePriority', async (...args: any[]) => {
+		await changePriority('down', args);
+	}));
 }
 

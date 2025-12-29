@@ -13,8 +13,8 @@ export interface ListItem {
     tags: string[];
     /** Completion status (for tasks) */
     completed: boolean;
-    /** Priority level if detected */
-    priority?: 'critical' | 'high' | 'medium' | 'low';
+    /** Priority level if detected (free-form; configured via settings) */
+    priority?: string;
     /** Project or section name */
     project?: string;
 }

@@ -36,8 +36,30 @@
         "title": "Toggle Complete",
         "icon": "$(checklist)",
         "category": "VoiceItems"
+      },
+      {
+        "command": "voiceitems.increasePriority",
+        "title": "Increase Priority",
+        "category": "VoiceItems"
+      },
+      {
+        "command": "voiceitems.decreasePriority",
+        "title": "Decrease Priority",
+        "category": "VoiceItems"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "VoiceItems Configuration",
+      "properties": {
+        "voiceitems.priorities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["backburner", "low", "medium", "routine", "priority", "immediate", "flash"],
+          "description": "List of supported priorities in ascending order (lowest to highest). Do not include the leading '!'."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

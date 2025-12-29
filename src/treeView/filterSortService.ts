@@ -69,14 +69,12 @@ export class FilterSortService {
             
             case 'priority':
                 return sorted.sort((a, b) => {
-                    const priorityOrder: Record<string, number> = {
-                        'critical': 0,
-                        'high': 1,
-                        'medium': 2,
-                        'low': 3
-                    };
-                    const aOrder = a.priority ? priorityOrder[a.priority] : 99;
-                    const bOrder = b.priority ? priorityOrder[b.priority] : 99;
+                    const config = vscode.workspace.getConfiguration('voiceitems');
+                    const priorities = config.get<string[]>('priorities', ['backburner', 'low', 'medium', 'routine', 'priority', 'immediate', 'flash']);
+                    const priorityOrder: Record<string, number> = {};
+                    priorities.forEach((p, idx) => priorityOrder[p.toLowerCase()] = idx);
+                    const aOrder = a.priority ? (priorityOrder[a.priority.toLowerCase()] ?? 99) : 99;
+                    const bOrder = b.priority ? (priorityOrder[b.priority.toLowerCase()] ?? 99) : 99;
                     return aOrder - bOrder;
                 });
             
