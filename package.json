@@ -37,6 +37,24 @@
         "icon": "$(symbol-key)",
         "category": "VoiceItems"
       },
+      {
+        "command": "voiceitems.showPriorityItems",
+        "title": "Show Items by Priority",
+        "icon": "$(telescope)",
+        "category": "VoiceItems"
+      },
+      {
+        "command": "voiceitems.showIncompleteItems",
+        "title": "Show Incomplete Items",
+        "icon": "$(circle-slash)",
+        "category": "VoiceItems"
+      },
+      {
+        "command": "voiceitems.showCompletedItems",
+        "title": "Show Completed Items",
+        "icon": "$(check)",
+        "category": "VoiceItems"
+      },
 
       {
         "command": "voiceitems.toggleComplete",

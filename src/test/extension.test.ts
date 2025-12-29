@@ -4,21 +4,31 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as os from 'os';
 import { ParserFactory } from '../parsers/parserFactory';
 import { FilterSortService } from '../treeView/filterSortService';
-import { registerQuickPickCommands, buildKeywordPicks, buildHeadingPicks } from '../commands/quickPickCommands';
+import { registerQuickPickCommands, buildKeywordPicks, buildHeadingPicks, buildPriorityPicks } from '../commands/quickPickCommands';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
 	// Helper: create a file in the workspace with given content
 	async function makeFile(name: string, content: string): Promise<vscode.Uri> {
+		let rootUri: vscode.Uri;
 		const folders = vscode.workspace.workspaceFolders;
 		if (!folders || folders.length === 0) {
-			throw new Error('Workspace folder is required for tests');
+			// No workspace folder configured in test runner — create a temp one and add it
+			const tempDir = path.join(os.tmpdir(), 'voiceitems-tests');
+			rootUri = vscode.Uri.file(tempDir);
+			// ensure directory exists
+			await vscode.workspace.fs.createDirectory(rootUri);
+			// add to workspace folders so relative APIs work
+			vscode.workspace.updateWorkspaceFolders(0, 0, { uri: rootUri, name: 'voiceitems-tests' });
+		} else {
+			rootUri = folders[0].uri;
 		}
 
-		const uri = vscode.Uri.joinPath(folders[0].uri, name);
+		const uri = vscode.Uri.joinPath(rootUri, name);
 		await vscode.workspace.fs.writeFile(uri, Buffer.from(content, 'utf8'));
 		return uri;
 	}
@@ -65,6 +75,29 @@ suite('Extension Test Suite', () => {
 		assert.ok(picks[1].label.startsWith('  »'), 'Second heading should preserve two-space indentation and highlight');
 		assert.ok(picks[2].label.startsWith('    »'), 'Third heading should preserve deeper indentation and highlight');
 		assert.strictEqual(picks[3].lineNumber, 5, 'Line number should be the index of the 4th heading (0-based)');
+
+		// cleanup
+		await vscode.workspace.fs.delete(uri);
+	});
+
+	test('buildPriorityPicks returns items for selected priorities and supports No Priority', async () => {
+		const content = `- [ ] Low priority item !low\n- [ ] High priority item !high\n- [ ] No priority here\n- [x] Done critical item !critical`;
+		const uri = await makeFile('test-priority.tasks', content);
+		const doc = await vscode.workspace.openTextDocument(uri);
+
+		// Select only 'high'
+		const highPicks = buildPriorityPicks(doc, ['high']);
+		assert.strictEqual(highPicks.length, 1, 'Should find one high-priority item');
+		assert.ok(highPicks[0].label.includes('High priority item'));
+
+		// Select 'no priority'
+		const noPicks = buildPriorityPicks(doc, ['No Priority']);
+		assert.strictEqual(noPicks.length, 1, 'Should find one item with no priority');
+		assert.ok(noPicks[0].label.includes('No priority here'));
+
+		// Select multiple priorities
+		const multi = buildPriorityPicks(doc, ['low', 'critical']);
+		assert.strictEqual(multi.length, 2, 'Should find two items matching low and critical');
 
 		// cleanup
 		await vscode.workspace.fs.delete(uri);

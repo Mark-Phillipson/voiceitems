@@ -52,6 +52,9 @@ VoiceItems provides quick-pick and editor-based navigation for lists in the curr
 - **Search by keyword**: `VoiceItems: Search by Keyword` — set a filter used by the QuickPick
 - **Clear keyword filter**: `VoiceItems: Clear Keyword Filter`
 - **Show items (Quick Pick)**: `VoiceItems: Show Items (Quick Pick)` — voice-friendly list selection from the current document
+- **Show items by priority**: `VoiceItems: Show Items by Priority` — pick one or more priorities to show matching items in the QuickPick
+- **Show incomplete items**: `VoiceItems: Show Incomplete Items` — show only uncompleted tasks in the QuickPick
+- **Show completed items**: `VoiceItems: Show Completed Items` — show only completed tasks in the QuickPick
 - **Toggle complete**: `VoiceItems: Toggle Complete` — toggle the checkbox on a specified line
 - **Show Markdown headings**: `VoiceItems: Show Markdown Headings` — navigate by headings in a Markdown file (highlights headings in the active editor while QuickPick is open; line numbers are not shown)
 

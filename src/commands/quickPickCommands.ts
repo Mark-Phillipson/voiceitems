@@ -50,6 +50,32 @@ export function buildHeadingPicks(document: vscode.TextDocument) {
 	return picks;
 }
 
+/**
+ * Build quick pick items for items matching one or more priorities.
+ * Pass priority names (case-insensitive) in the `priorities` array.
+ * Use the special value 'No Priority' to match items without a priority.
+ */
+export function buildPriorityPicks(document: vscode.TextDocument, priorities: string[]) {
+	const picks: Array<{ label: string; detail: string; lineNumber: number }> = [];
+	if (!priorities || priorities.length === 0) { return picks; }
+	const parser = parserFactory.getParser(document);
+	if (!parser) { return picks; }
+	const parseResult = parser.parse(document);
+	const lower = priorities.map(p => p.toLowerCase());
+	for (const it of parseResult.items) {
+		const itemPriority = it.priority ? it.priority.toLowerCase() : undefined;
+		const hasNoPriority = !itemPriority;
+		if (hasNoPriority && lower.includes('no priority')) {
+			picks.push({ label: it.text.replace(/^\s*([-*+]|\d+\.)\s*/, ''), detail: `Line ${it.lineNumber + 1}`, lineNumber: it.lineNumber });
+			continue;
+		}
+		if (itemPriority && lower.includes(itemPriority)) {
+			picks.push({ label: it.text.replace(/^\s*([-*+]|\d+\.)\s*/, ''), detail: `Line ${it.lineNumber + 1}`, lineNumber: it.lineNumber });
+		}
+	}
+	return picks;
+}
+
 async function showKeywordMatches(editor: vscode.TextEditor, keyword: string) {
 	const picks = buildKeywordPicks(editor.document, keyword);
 	if (picks.length === 0) {
@@ -103,8 +129,24 @@ function applyHeadingDecorations(editor: vscode.TextEditor, picks: Array<{ label
 }
 
 export function registerQuickPickCommands(context: vscode.ExtensionContext) {
+	// Ensure tests can pass a lightweight fake context object without subscriptions
+	if (!context) { throw new Error('Extension context is required'); }
+	if (!Array.isArray((context as any).subscriptions)) { (context as any).subscriptions = []; }
+
+	// Helper that safely registers a command only if it doesn't already exist (avoids duplicate registration errors in tests)
+	function safeRegister(cmd: string, handler: (...args: any[]) => any) {
+		try {
+			context.subscriptions.push(vscode.commands.registerCommand(cmd, handler));
+		} catch (err: any) {
+			if (!String(err).includes('already exists')) {
+				console.error(`Failed to register command ${cmd}:`, err);
+				throw err;
+			}
+		}
+	}
+
 	// Show items from active document in a QuickPick for voice-friendly selection
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.showItemsQuickPick', async () => {
+	safeRegister('voiceitems.showItemsQuickPick', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			vscode.window.showInformationMessage('No active editor');
@@ -153,19 +195,19 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		if (pick) {
 			await vscode.commands.executeCommand('voiceitems.jumpToLine', editor.document.uri, pick.item.lineNumber);
 		}
-	}));
+	});
 
 	// Show matches for a keyword across the whole document
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.showKeywordMatches', async () => {
+	safeRegister('voiceitems.showKeywordMatches', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
 		const kw = filterSortService.getKeywordFilter();
 		if (!kw) { vscode.window.showInformationMessage('No keyword set. Use Search by Keyword first.'); return; }
 		await showKeywordMatches(editor, kw);
-	}));
+	});
 
 	// Show Markdown headings — apply temporary in-editor decorations to color headings while QuickPick is open
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.showMarkdownHeadings', async () => {
+	safeRegister('voiceitems.showMarkdownHeadings', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
 		const doc = editor.document;
@@ -199,10 +241,10 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		if (pick) {
 			await vscode.commands.executeCommand('voiceitems.jumpToLine', doc.uri, (pick as any).lineNumber);
 		}
-	}));
+	});
 
 	// Toggle complete/incomplete on a line. Accepts either (uri, lineNumber) or a tree-item-like arg
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.toggleComplete', async (...args: any[]) => {
+	safeRegister('voiceitems.toggleComplete', async (...args: any[]) => {
 		let uri: vscode.Uri | undefined;
 		let lineNumber: number | undefined;
 
@@ -256,10 +298,10 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 		} catch (err) {
 			vscode.window.showErrorMessage(`Failed to toggle complete: ${String(err)}`);
 		}
-	}));
+	});
 
 	// Keyword search for QuickPick (stores it in the FilterSortService)
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.searchKeyword', async () => {
+	safeRegister('voiceitems.searchKeyword', async () => {
 		const keyword = await vscode.window.showInputBox({ prompt: 'Enter keyword to filter items', placeHolder: 'keyword...' });
 		if (keyword !== undefined) {
 			if (keyword.trim()) {
@@ -276,12 +318,90 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 				vscode.window.showInformationMessage('Filter cleared');
 			}
 		}
-	}));
+	});
 
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.clearKeywordFilter', () => {
+	safeRegister('voiceitems.clearKeywordFilter', () => {
 		filterSortService.clearKeywordFilter();
 		vscode.window.showInformationMessage('Filter cleared');
-	}));
+	});
+
+	// Show items by selected priorities. Prompts for one or more priorities to include.
+	safeRegister('voiceitems.showPriorityItems', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
+
+		const config = vscode.workspace.getConfiguration('voiceitems');
+		const priorities = config.get<string[]>('priorities', ['low', 'medium', 'high', 'critical']);
+		const qpOptions = priorities.map(p => ({ label: `!${p}`, description: p }));
+		qpOptions.push({ label: 'No Priority', description: 'No Priority' });
+
+		const selected = await vscode.window.showQuickPick(qpOptions as any, { canPickMany: true, placeHolder: 'Select priorities to show' });
+		if (!selected || selected.length === 0) {
+			vscode.window.showInformationMessage('No priorities selected');
+			return;
+		}
+
+		const chosen = selected.map((s: any) => (s.description || s.label.replace(/^!/, '')));
+		const picks = buildPriorityPicks(editor.document, chosen);
+		if (picks.length === 0) { vscode.window.showInformationMessage('No items found for selected priorities'); return; }
+
+		const pick = await vscode.window.showQuickPick(picks as any, { placeHolder: 'Select an item to open' });
+		if (pick) {
+			await vscode.commands.executeCommand('voiceitems.jumpToLine', editor.document.uri, (pick as any).lineNumber);
+		}
+	});
+
+	// Show only incomplete items in QuickPick
+	safeRegister('voiceitems.showIncompleteItems', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
+
+		const parser = parserFactory.getParser(editor.document);
+		if (!parser) { vscode.window.showInformationMessage('No supported document open'); return; }
+
+		const parseResult = parser.parse(editor.document);
+		const groups = filterSortService.transform(parseResult.items, 'incomplete', 'none', 'none');
+		const items = groups.get('All Items') || [];
+		if (items.length === 0) { vscode.window.showInformationMessage('No incomplete items found in current document'); return; }
+
+		const picks = items.map((it, idx) => ({
+			label: `${idx + 1}. ${it.text.replace(/^\s*([-*+]|\d+\.)\s*/, '')}`,
+			description: it.project ? `@${it.project}` : undefined,
+			detail: `Line ${it.lineNumber + 1}`,
+			item: it
+		}));
+
+		const pick = await vscode.window.showQuickPick(picks, { placeHolder: 'Select an item to open' });
+		if (pick) {
+			await vscode.commands.executeCommand('voiceitems.jumpToLine', editor.document.uri, (pick as any).item.lineNumber);
+		}
+	});
+
+	// Show only completed items in QuickPick
+	safeRegister('voiceitems.showCompletedItems', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) { vscode.window.showInformationMessage('No active editor'); return; }
+
+		const parser = parserFactory.getParser(editor.document);
+		if (!parser) { vscode.window.showInformationMessage('No supported document open'); return; }
+
+		const parseResult = parser.parse(editor.document);
+		const groups = filterSortService.transform(parseResult.items, 'completed', 'none', 'none');
+		const items = groups.get('All Items') || [];
+		if (items.length === 0) { vscode.window.showInformationMessage('No completed items found in current document'); return; }
+
+		const picks = items.map((it, idx) => ({
+			label: `${idx + 1}. ${it.text.replace(/^\s*([-*+]|\d+\.)\s*/, '')}`,
+			description: it.project ? `@${it.project}` : undefined,
+			detail: `Line ${it.lineNumber + 1}`,
+			item: it
+		}));
+
+		const pick = await vscode.window.showQuickPick(picks, { placeHolder: 'Select an item to open' });
+		if (pick) {
+			await vscode.commands.executeCommand('voiceitems.jumpToLine', editor.document.uri, (pick as any).item.lineNumber);
+		}
+	});
 
 	// Change priority for an item (increase/up or decrease/down)
 	async function changePriority(direction: 'up' | 'down', args: any[]) {
@@ -365,13 +485,13 @@ export function registerQuickPickCommands(context: vscode.ExtensionContext) {
 	}
 
 	// Increase priority (make more urgent)
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.increasePriority', async (...args: any[]) => {
+	safeRegister('voiceitems.increasePriority', async (...args: any[]) => {
 		await changePriority('up', args);
-	}));
+	});
 
 	// Decrease priority (make less urgent)
-	context.subscriptions.push(vscode.commands.registerCommand('voiceitems.decreasePriority', async (...args: any[]) => {
+	safeRegister('voiceitems.decreasePriority', async (...args: any[]) => {
 		await changePriority('down', args);
-	}));
+	});
 }
 
